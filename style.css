@@ -558,21 +558,6 @@ input {
   border-radius: 12px;
   background: var(--bg);
 }
-.guide-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: var(--accent-bg);
-  color: var(--accent);
-}
-.guide-icon svg {
-  width: 18px;
-  height: 18px;
-}
 .guide-text {
   display: flex;
   flex-direction: column;

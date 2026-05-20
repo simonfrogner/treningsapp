@@ -3,6 +3,14 @@
 Format basert på [Keep a Changelog](https://keepachangelog.com/).
 Versjonering følger [SemVer](https://semver.org/).
 
+## [1.5.0] – 2026-05-20
+
+### Lagt til
+- Velkomstmodal ved første oppstart som krever at brukeren skriver inn navn.
+
+### Endret
+- Brukerveiledning uten ikoner — bare titler og tekst.
+
 ## [1.4.0] – 2026-05-20
 
 ### Lagt til

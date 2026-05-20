@@ -1,4 +1,4 @@
-import { seedIfEmpty, createWorkout, listWorkouts, deleteWorkout } from './db.js';
+import { seedIfEmpty, createWorkout, listWorkouts, deleteWorkout, getProfile, saveProfile } from './db.js';
 import { renderHome } from './screens/home.js';
 import { renderHistory } from './screens/history.js';
 import { renderExercises } from './screens/exercises.js';
@@ -91,6 +91,7 @@ tabbar.addEventListener('click', (e) => {
 
 (async function init() {
   await seedIfEmpty();
+  await ensureProfileName();
   setTab('home');
 
   if ('serviceWorker' in navigator) {
@@ -125,6 +126,45 @@ tabbar.addEventListener('click', (e) => {
     });
   }
 })();
+
+async function ensureProfileName() {
+  const profile = await getProfile();
+  if (profile.name && profile.name.trim()) return;
+  await new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    wrap.innerHTML = `
+      <div class="modal">
+        <h2 class="modal__title">Velkommen!</h2>
+        <p class="t-secondary" style="margin:0;">Hva heter du? Dette brukes til å hilse på deg når du åpner appen.</p>
+        <label class="field">
+          <span class="field__label">Navn</span>
+          <input class="field__input" id="welcome-name" type="text" placeholder="Ditt navn" autocomplete="given-name">
+        </label>
+        <button class="modal__btn modal__btn--primary" data-action="save">Kom i gang</button>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+    const input = wrap.querySelector('#welcome-name');
+    setTimeout(() => input.focus(), 50);
+
+    async function submit() {
+      const name = input.value.trim();
+      if (!name) {
+        input.focus();
+        return;
+      }
+      await saveProfile({ name, startedTrainingAt: null });
+      wrap.remove();
+      resolve();
+    }
+
+    wrap.querySelector('[data-action="save"]').addEventListener('click', submit);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') submit();
+    });
+  });
+}
 
 function showUpdateBanner() {
   if (document.getElementById('update-banner')) return;
