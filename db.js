@@ -130,14 +130,40 @@ export async function getWorkout(id) {
 }
 
 export async function createWorkout({ name }) {
-  const w = { id: uid(), name, startedAt: Date.now(), endedAt: null };
+  const w = { id: uid(), name, startedAt: Date.now(), endedAt: null, notes: '' };
   const t = await tx(['workouts'], 'readwrite');
   await reqToPromise(t.objectStore('workouts').add(w));
   w.exercises = [];
   return w;
 }
 
+export async function updateWorkoutNotes(workoutId, notes) {
+  const t = await tx(['workouts'], 'readwrite');
+  const store = t.objectStore('workouts');
+  const w = await reqToPromise(store.get(workoutId));
+  if (!w) return null;
+  w.notes = notes;
+  await reqToPromise(store.put(w));
+  return w;
+}
+
 export async function finishWorkout(workoutId) {
+  // Rydd bort tomme sett (vekt eller reps = 0)
+  const cleanTx = await tx(['workout_exercises', 'workout_sets'], 'readwrite');
+  const exStore = cleanTx.objectStore('workout_exercises');
+  const setStore = cleanTx.objectStore('workout_sets');
+  const exKeys = await reqToPromise(exStore.index('workoutId').getAllKeys(workoutId));
+  for (const exKey of exKeys) {
+    const setKeys = await reqToPromise(setStore.index('workoutExerciseId').getAllKeys(exKey));
+    for (const sKey of setKeys) {
+      const s = await reqToPromise(setStore.get(sKey));
+      if (!s) continue;
+      if (!s.weight || !s.reps) {
+        await reqToPromise(setStore.delete(sKey));
+      }
+    }
+  }
+
   const t = await tx(['workouts'], 'readwrite');
   const store = t.objectStore('workouts');
   const w = await reqToPromise(store.get(workoutId));

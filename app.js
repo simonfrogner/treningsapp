@@ -1,4 +1,4 @@
-import { seedIfEmpty, createWorkout } from './db.js';
+import { seedIfEmpty, createWorkout, listWorkouts, deleteWorkout } from './db.js';
 import { renderHome } from './screens/home.js';
 import { renderHistory } from './screens/history.js';
 import { renderExercises } from './screens/exercises.js';
@@ -32,6 +32,7 @@ async function render() {
         screen = await renderHome({
           onStartWorkout: startWorkout,
           onOpenWorkout: openDetail,
+          onSeeAll: () => setTab('history'),
         });
         break;
       case 'history':
@@ -52,6 +53,10 @@ async function render() {
 }
 
 async function startWorkout() {
+  const all = await listWorkouts();
+  for (const stale of all.filter(w => w.endedAt == null)) {
+    await deleteWorkout(stale.id);
+  }
   const w = await createWorkout({ name: workoutNameForToday() });
   overlay = { kind: 'active', workoutId: w.id };
   render();

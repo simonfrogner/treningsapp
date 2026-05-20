@@ -1,15 +1,12 @@
-import { listWorkouts, workoutDurationSec, workoutTotalVolume, getProfile } from '../db.js';
-import { greeting, formatDuration, startOfWeek, escapeHTML } from '../utils.js';
+import { listWorkouts, workoutDurationSec, getProfile } from '../db.js';
+import { greeting, formatDuration, escapeHTML } from '../utils.js';
 
-export async function renderHome({ onStartWorkout, onOpenWorkout }) {
+export async function renderHome({ onStartWorkout, onOpenWorkout, onSeeAll }) {
   const all = await listWorkouts();
   const profile = await getProfile();
   const firstName = (profile.name || '').split(/\s+/)[0];
   const completed = all.filter(w => w.endedAt != null);
   const recent = completed.slice(0, 3);
-  const weekStart = startOfWeek();
-  const thisWeek = completed.filter(w => w.startedAt >= weekStart);
-  const weekVolume = thisWeek.reduce((sum, w) => sum + workoutTotalVolume(w), 0);
 
   const html = `
     <header class="hero">
@@ -30,25 +27,16 @@ export async function renderHome({ onStartWorkout, onOpenWorkout }) {
     </button>
 
     <section class="section">
-      <h2 class="t-section-title">Siste treninger</h2>
+      <div class="section__head">
+        <h2 class="t-section-title">Siste treninger</h2>
+        ${completed.length > 3 ? `<button class="link-btn link-btn--inline" id="see-all-btn">Se alle</button>` : ''}
+      </div>
       ${recent.length === 0
         ? `<div class="card"><p class="t-secondary" style="margin:0;">Ingen treninger ennå</p></div>`
         : `<div class="stack">${recent.map(workoutCard).join('')}</div>`
       }
     </section>
 
-    <section class="section">
-      <div class="card week-summary">
-        <div>
-          <div class="t-big-number">${thisWeek.length}</div>
-          <div class="t-small">treninger denne uken</div>
-        </div>
-        <div>
-          <div class="t-big-number">${Math.round(weekVolume)} kg</div>
-          <div class="t-small">total volum</div>
-        </div>
-      </div>
-    </section>
   `;
 
   return {
@@ -58,6 +46,7 @@ export async function renderHome({ onStartWorkout, onOpenWorkout }) {
       for (const el of rootEl.querySelectorAll('[data-workout-id]')) {
         el.addEventListener('click', () => onOpenWorkout(el.dataset.workoutId));
       }
+      rootEl.querySelector('#see-all-btn')?.addEventListener('click', () => onSeeAll?.());
     }
   };
 }
@@ -70,7 +59,7 @@ function workoutCard(w) {
     <button class="card workout-card" data-workout-id="${escapeHTML(w.id)}">
       <div class="workout-card__body">
         <div class="t-card-title">${escapeHTML(w.name)}</div>
-        <div class="t-secondary">${formatDuration(workoutDurationSec(w))} · ${Math.round(workoutTotalVolume(w))} kg</div>
+        <div class="t-secondary">${formatDuration(workoutDurationSec(w))}</div>
         ${exercises ? `<div class="t-small workout-card__exercises">${escapeHTML(exercises)}</div>` : ''}
       </div>
       <span class="chevron">

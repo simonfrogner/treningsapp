@@ -3,6 +3,32 @@
 Format basert på [Keep a Changelog](https://keepachangelog.com/).
 Versjonering følger [SemVer](https://semver.org/).
 
+## [1.1.0] – 2026-05-20
+
+### Lagt til
+- Notater per treningsøkt (knapp som åpner modal i aktiv trening og treningsdetalj).
+- Picker for å velge øvelse når man legger til midt i en økt (med søk, filtrerer bort allerede valgte øvelser).
+- "Se alle"-lenke på Hjem som tar deg til Historikk når du har 4+ treninger.
+- Profil-statistikk utvidet: totalt antall, denne uken, denne måneden, streak.
+- "Dager siden sist"-fallback hvis streak er 0.
+
+### Endret
+- Profil-header (avatar + navn) er nå klikkbar og åpner redigeringsmodalen direkte.
+- Tilbake-pil under aktiv trening gir valg om "Fortsett" eller "Forkast".
+- Tomme sett ryddes automatisk når en trening fullføres.
+- Hilsen tilpasses automatisk om navn er satt eller ikke.
+- "Total volum" fjernet fra alle skjermer for renere UI.
+- Uferdige treninger ryddes stille når en ny økt startes.
+
+### Fjernet
+- "Trener siden"-felt i profilen.
+- Ukessammendrag på Hjem (vises nå i Profil-statistikken).
+
+### Fikset
+- Separator-linjer i lister sto for langt inne.
+- Forhindrer fullføring av tom trening (uten øvelser).
+- Zoom på dobbeltrykk på iPhone er skrudd av.
+
 ## [1.0.0] – 2026-05-20
 
 ### Lagt til

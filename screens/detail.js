@@ -1,6 +1,6 @@
 import {
-  getWorkout, workoutDurationSec, workoutTotalVolume,
-  updateWorkout, deleteWorkout, deleteSet,
+  getWorkout, workoutDurationSec,
+  updateWorkout, updateWorkoutNotes, deleteWorkout, deleteSet,
 } from '../db.js';
 import { formatWeekday, formatDuration, escapeHTML } from '../utils.js';
 
@@ -23,14 +23,14 @@ export async function renderDetail({ workoutId, onClose }) {
       <div class="t-secondary" style="margin-top:8px;">${formatWeekday(w.startedAt)}</div>
       <div class="t-secondary">${formatDuration(workoutDurationSec(w))}</div>
 
-      <div class="volume-line">
-        <span class="t-big-number">${Math.round(workoutTotalVolume(w))}</span>
-        <span class="t-secondary" style="font-size:15px;">kg totalt volum</span>
-      </div>
-
       <div class="stack" style="margin-top:24px;">
         ${w.exercises.map(exerciseCard).join('')}
       </div>
+
+      <button class="dashed-btn" id="notes-btn" style="margin-top:var(--card-gap);">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <span>${w.notes ? 'Rediger notater' : 'Legg til notater'}</span>
+      </button>
     `;
   }
 
@@ -73,6 +73,14 @@ export async function renderDetail({ workoutId, onClose }) {
         onClose();
       }
     });
+    rootEl.querySelector('#notes-btn').addEventListener('click', async () => {
+      const updated = await openNotesModal(w.notes || '');
+      if (updated !== null) {
+        await updateWorkoutNotes(workoutId, updated);
+        await refresh(rootEl);
+      }
+    });
+
     for (const btn of rootEl.querySelectorAll('[data-action="delete-set"]')) {
       btn.addEventListener('click', async () => {
         const row = btn.closest('[data-set-id]');
@@ -84,6 +92,34 @@ export async function renderDetail({ workoutId, onClose }) {
   }
 
   return { html: html(), bind };
+}
+
+function openNotesModal(initial) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    wrap.innerHTML = `
+      <div class="modal">
+        <div class="modal__head">
+          <h2 class="modal__title" style="margin:0;">Notater</h2>
+          <button class="modal__close" data-action="cancel" aria-label="Lukk">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+          </button>
+        </div>
+        <textarea class="notes-textarea" id="notes-input" rows="5" placeholder="Hvordan kjentes økten?">${escapeHTML(initial)}</textarea>
+        <button class="modal__btn modal__btn--primary" data-action="save">Lagre</button>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+    const ta = wrap.querySelector('#notes-input');
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+
+    function close(v) { wrap.remove(); resolve(v); }
+    wrap.addEventListener('click', e => { if (e.target === wrap) close(null); });
+    wrap.querySelector('[data-action="cancel"]').addEventListener('click', () => close(null));
+    wrap.querySelector('[data-action="save"]').addEventListener('click', () => close(ta.value));
+  });
 }
 
 function openEditWorkoutModal(workout) {
