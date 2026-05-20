@@ -1,0 +1,25 @@
+# Changelog
+
+Format basert på [Keep a Changelog](https://keepachangelog.com/).
+Versjonering følger [SemVer](https://semver.org/).
+
+## [1.0.0] – 2026-05-20
+
+### Lagt til
+- Hjem-skjerm med tidsbasert hilsen, start-knapp, siste treninger og ukessammendrag.
+- Aktiv trening med timer, logging av sett (vekt × reps), avkrysning per sett.
+- Mulighet til å legge til og fjerne øvelser midt i en aktiv økt.
+- Slett enkeltsett under aktiv trening.
+- Historikk gruppert per uke.
+- Treningsdetalj med oversikt over alle sett.
+- Rediger navn og dato på en treningsøkt, eller slett hele økten.
+- Slett enkeltsett fra en gjennomført trening.
+- Øvelsesbibliotek med søk og filtrering per muskelgruppe.
+- Legg til, rediger og slett egne øvelser (med advarsel hvis øvelsen er brukt før).
+- Profil med statistikk (treninger denne måneden, total volum, streak).
+- Rediger profil (navn + startdato for trening).
+- Eksporter og importer all data som JSON.
+- Slett alle data med dobbel bekreftelse.
+- Automatisk navn på nye treninger ("Trening 20. mai").
+- Lokal lagring i nettleseren via IndexedDB.
+- PWA: installerbar på hjemskjerm, fungerer offline, mørk og lys modus.

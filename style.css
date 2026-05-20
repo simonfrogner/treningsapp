@@ -153,12 +153,25 @@ input {
   align-items: center;
   gap: 12px;
   padding: 16px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
 }
 
 .list-row + .list-row {
-  border-top: 0.5px solid var(--sep);
-  margin-left: 16px;
-  padding-left: 0;
+  position: relative;
+}
+.list-row + .list-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 0.5px;
+  background: var(--sep);
 }
 
 .stack {
@@ -388,12 +401,111 @@ input {
   color: var(--text-ter);
 }
 
+.version-line {
+  margin: 32px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-ter);
+}
+
 .settings-row {
   width: 100%;
 }
 .settings-row__label {
   flex: 1;
   font-size: 16px;
+  text-align: left;
+}
+.settings-row--danger .settings-row__label {
+  color: #DC2626;
+}
+@media (prefers-color-scheme: dark) {
+  .settings-row--danger .settings-row__label {
+    color: #F87171;
+  }
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+.modal {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field__label {
+  font-size: 13px;
+  color: var(--text-sec);
+  font-weight: 500;
+}
+.field__input {
+  background: var(--bg);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+}
+.modal__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.modal__btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.modal__btn--ghost {
+  background: var(--bg);
+  color: var(--text);
+}
+.modal__btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
+.modal__delete {
+  background: transparent;
+  color: #DC2626;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, #DC2626 30%, transparent);
+}
+@media (prefers-color-scheme: dark) {
+  .modal__delete {
+    color: #F87171;
+    border-color: color-mix(in srgb, #F87171 30%, transparent);
+  }
 }
 
 /* Overlay (aktiv trening, detalj) */
@@ -593,12 +705,55 @@ body.has-overlay #tabbar {
 }
 .detail-set {
   display: flex;
+  align-items: center;
   gap: 8px;
   font-size: 14px;
 }
 .detail-set__num {
   width: 22px;
   color: var(--text-ter);
+}
+.detail-set__value {
+  flex: 1;
+}
+.detail-set__delete,
+.set-row__delete,
+.exercise-log__remove {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #DC2626;
+  border-radius: 6px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.detail-set__delete:hover,
+.set-row__delete:hover,
+.exercise-log__remove:hover {
+  opacity: 1;
+}
+@media (prefers-color-scheme: dark) {
+  .detail-set__delete,
+  .set-row__delete,
+  .exercise-log__remove {
+    color: #F87171;
+  }
+}
+.detail-set__delete svg,
+.set-row__delete svg,
+.exercise-log__remove svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.exercise-log__remove {
+  margin-left: auto;
 }
 
 /* Tab bar */

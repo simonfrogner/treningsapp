@@ -1,5 +1,6 @@
 import {
-  listExercises, addExerciseToWorkout, addSet, updateSet, finishWorkout, getWorkout,
+  listExercises, addExerciseToWorkout, addSet, updateSet, deleteSet,
+  deleteWorkoutExercise, finishWorkout, getWorkout,
 } from '../db.js';
 import { formatTimer, escapeHTML } from '../utils.js';
 
@@ -47,10 +48,13 @@ export async function renderActive({ workoutId, onClose }) {
         <div class="exercise-log__head">
           <span class="t-card-title">${escapeHTML(ex.exerciseName)}</span>
           <span class="muscle-tag">${escapeHTML(ex.muscleGroup)}</span>
+          <button class="exercise-log__remove" data-action="remove-exercise" data-ex-id="${escapeHTML(ex.id)}" aria-label="Fjern øvelse">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+          </button>
         </div>
         <div class="set-table">
           <div class="set-table__head">
-            <span>SETT</span>
+            <span></span>
             <span>KG</span>
             <span>REPS</span>
             <span></span>
@@ -68,7 +72,9 @@ export async function renderActive({ workoutId, onClose }) {
   function setRow(s) {
     return `
       <div class="set-row ${s.isCompleted ? 'is-done' : ''}" data-set-id="${escapeHTML(s.id)}">
-        <span class="set-row__num">${s.setNumber}</span>
+        <button class="set-row__delete" data-action="delete-set" aria-label="Slett sett">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+        </button>
         <input class="set-row__input" type="number" inputmode="decimal" data-field="weight" value="${s.weight || ''}" placeholder="0">
         <input class="set-row__input" type="number" inputmode="numeric" data-field="reps" value="${s.reps || ''}" placeholder="0">
         <button class="check-circle ${s.isCompleted ? 'is-done' : ''}" data-action="toggle" aria-label="Marker sett som fullført">
@@ -99,6 +105,14 @@ export async function renderActive({ workoutId, onClose }) {
         await refresh();
       };
     }
+    for (const btn of document.querySelectorAll('[data-action="remove-exercise"]')) {
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        if (!confirm('Fjerne denne øvelsen fra økten?')) return;
+        await deleteWorkoutExercise(btn.dataset.exId);
+        await refresh();
+      };
+    }
     for (const row of document.querySelectorAll('.set-row')) {
       const setId = row.dataset.setId;
       for (const input of row.querySelectorAll('input')) {
@@ -115,6 +129,11 @@ export async function renderActive({ workoutId, onClose }) {
         const w = parseFloat(row.querySelector('[data-field="weight"]').value) || 0;
         const r = parseInt(row.querySelector('[data-field="reps"]').value) || 0;
         await updateSet(setId, { isCompleted: !s.isCompleted, weight: w, reps: r });
+        await refresh();
+      };
+      const delBtn = row.querySelector('[data-action="delete-set"]');
+      delBtn.onclick = async () => {
+        await deleteSet(setId);
         await refresh();
       };
     }

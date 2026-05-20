@@ -1,8 +1,10 @@
-import { listWorkouts, workoutDurationSec, workoutTotalVolume } from '../db.js';
-import { greeting, formatDate, formatDuration, startOfWeek, escapeHTML } from '../utils.js';
+import { listWorkouts, workoutDurationSec, workoutTotalVolume, getProfile } from '../db.js';
+import { greeting, formatDuration, startOfWeek, escapeHTML } from '../utils.js';
 
 export async function renderHome({ onStartWorkout, onOpenWorkout }) {
   const all = await listWorkouts();
+  const profile = await getProfile();
+  const firstName = (profile.name || '').split(/\s+/)[0];
   const completed = all.filter(w => w.endedAt != null);
   const recent = completed.slice(0, 3);
   const weekStart = startOfWeek();
@@ -11,8 +13,10 @@ export async function renderHome({ onStartWorkout, onOpenWorkout }) {
 
   const html = `
     <header class="hero">
-      <p class="hero__greeting">${greeting()}</p>
-      <h1 class="hero__name">Magnus</h1>
+      ${firstName
+        ? `<p class="hero__greeting">${greeting()}</p><h1 class="hero__name">${escapeHTML(firstName)}</h1>`
+        : `<h1 class="hero__name">${greeting().replace(',', '!')}</h1>`
+      }
     </header>
 
     <button class="start-cta" id="start-cta">
@@ -66,7 +70,7 @@ function workoutCard(w) {
     <button class="card workout-card" data-workout-id="${escapeHTML(w.id)}">
       <div class="workout-card__body">
         <div class="t-card-title">${escapeHTML(w.name)}</div>
-        <div class="t-secondary">${formatDate(w.startedAt)} · ${formatDuration(workoutDurationSec(w))} · ${Math.round(workoutTotalVolume(w))} kg</div>
+        <div class="t-secondary">${formatDuration(workoutDurationSec(w))} · ${Math.round(workoutTotalVolume(w))} kg</div>
         ${exercises ? `<div class="t-small workout-card__exercises">${escapeHTML(exercises)}</div>` : ''}
       </div>
       <span class="chevron">

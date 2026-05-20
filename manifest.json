@@ -2,6 +2,7 @@
   "name": "Treningsapp",
   "short_name": "Trening",
   "description": "Logg styrketrening og se historikk",
+  "version": "1.0.0",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

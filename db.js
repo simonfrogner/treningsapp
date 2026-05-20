@@ -4,8 +4,8 @@
 // til en backend (f.eks. Railway), erstatter vi innmaten uten å endre kallene.
 
 const DB_NAME = 'treningsapp';
-const DB_VERSION = 1;
-const STORES = ['exercises', 'workouts', 'workout_exercises', 'workout_sets'];
+const DB_VERSION = 2;
+const STORES = ['exercises', 'workouts', 'workout_exercises', 'workout_sets', 'profile'];
 
 let dbPromise = null;
 
@@ -31,6 +31,9 @@ function openDB() {
       if (!db.objectStoreNames.contains('workout_sets')) {
         const s = db.createObjectStore('workout_sets', { keyPath: 'id' });
         s.createIndex('workoutExerciseId', 'workoutExerciseId', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('profile')) {
+        db.createObjectStore('profile', { keyPath: 'id' });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -68,6 +71,29 @@ export async function addExercise({ name, muscleGroup, prWeight = null, prReps =
   const t = await tx(['exercises'], 'readwrite');
   await reqToPromise(t.objectStore('exercises').add(ex));
   return ex;
+}
+
+export async function updateExercise(id, { name, muscleGroup }) {
+  const t = await tx(['exercises'], 'readwrite');
+  const store = t.objectStore('exercises');
+  const ex = await reqToPromise(store.get(id));
+  if (!ex) return null;
+  if (name != null) ex.name = name;
+  if (muscleGroup != null) ex.muscleGroup = muscleGroup;
+  await reqToPromise(store.put(ex));
+  return ex;
+}
+
+export async function deleteExercise(id) {
+  const t = await tx(['exercises'], 'readwrite');
+  await reqToPromise(t.objectStore('exercises').delete(id));
+}
+
+export async function countWorkoutsUsingExerciseName(name) {
+  const t = await tx(['workout_exercises']);
+  const all = await reqToPromise(t.objectStore('workout_exercises').getAll());
+  const workoutIds = new Set(all.filter(we => we.exerciseName === name).map(we => we.workoutId));
+  return workoutIds.size;
 }
 
 // === Workouts ===
@@ -146,6 +172,105 @@ export async function updateSet(setId, patch) {
   return s;
 }
 
+export async function deleteSet(setId) {
+  const t = await tx(['workout_sets'], 'readwrite');
+  await reqToPromise(t.objectStore('workout_sets').delete(setId));
+}
+
+export async function deleteWorkoutExercise(workoutExerciseId) {
+  const t = await tx(['workout_exercises', 'workout_sets'], 'readwrite');
+  const setsStore = t.objectStore('workout_sets');
+  const idx = setsStore.index('workoutExerciseId');
+  const sets = await reqToPromise(idx.getAllKeys(workoutExerciseId));
+  for (const key of sets) {
+    await reqToPromise(setsStore.delete(key));
+  }
+  await reqToPromise(t.objectStore('workout_exercises').delete(workoutExerciseId));
+}
+
+export async function updateWorkout(workoutId, { name, startedAt }) {
+  const t = await tx(['workouts'], 'readwrite');
+  const store = t.objectStore('workouts');
+  const w = await reqToPromise(store.get(workoutId));
+  if (!w) return null;
+  if (name != null) w.name = name;
+  if (startedAt != null) {
+    const diff = startedAt - w.startedAt;
+    w.startedAt = startedAt;
+    if (w.endedAt != null) w.endedAt += diff;
+  }
+  await reqToPromise(store.put(w));
+  return w;
+}
+
+export async function deleteWorkout(workoutId) {
+  const t = await tx(['workouts', 'workout_exercises', 'workout_sets'], 'readwrite');
+  const exStore = t.objectStore('workout_exercises');
+  const setStore = t.objectStore('workout_sets');
+  const exIdx = exStore.index('workoutId');
+  const exKeys = await reqToPromise(exIdx.getAllKeys(workoutId));
+  const exRows = await reqToPromise(exIdx.getAll(workoutId));
+  for (const ex of exRows) {
+    const setKeys = await reqToPromise(setStore.index('workoutExerciseId').getAllKeys(ex.id));
+    for (const k of setKeys) await reqToPromise(setStore.delete(k));
+  }
+  for (const k of exKeys) await reqToPromise(exStore.delete(k));
+  await reqToPromise(t.objectStore('workouts').delete(workoutId));
+}
+
+// === Profil ===
+
+const PROFILE_ID = 'me';
+const DEFAULT_PROFILE = { id: PROFILE_ID, name: '', startedTrainingAt: null };
+
+export async function getProfile() {
+  const t = await tx(['profile']);
+  const existing = await reqToPromise(t.objectStore('profile').get(PROFILE_ID));
+  return existing || { ...DEFAULT_PROFILE };
+}
+
+export async function saveProfile({ name, startedTrainingAt }) {
+  const profile = { id: PROFILE_ID, name: name ?? '', startedTrainingAt: startedTrainingAt ?? null };
+  const t = await tx(['profile'], 'readwrite');
+  await reqToPromise(t.objectStore('profile').put(profile));
+  return profile;
+}
+
+// === Eksport / import / slett ===
+
+export async function exportAll() {
+  const t = await tx(STORES);
+  const data = {};
+  for (const name of STORES) {
+    data[name] = await reqToPromise(t.objectStore(name).getAll());
+  }
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data,
+  };
+}
+
+export async function importAll(payload, { replace = true } = {}) {
+  if (!payload || !payload.data) throw new Error('Ugyldig importfil');
+  const t = await tx(STORES, 'readwrite');
+  for (const name of STORES) {
+    const store = t.objectStore(name);
+    if (replace) await reqToPromise(store.clear());
+    const rows = payload.data[name] || [];
+    for (const row of rows) {
+      await reqToPromise(store.put(row));
+    }
+  }
+}
+
+export async function clearAll() {
+  const t = await tx(STORES, 'readwrite');
+  for (const name of STORES) {
+    await reqToPromise(t.objectStore(name).clear());
+  }
+}
+
 // === Beregninger (kan kjøres på data uten DB) ===
 
 export function workoutDurationSec(w) {
@@ -170,71 +295,23 @@ export async function seedIfEmpty() {
   if (existing.length > 0) return;
 
   const library = [
-    ['Benkpress', 'Bryst', 100, 5],
-    ['Skråbenk hantel', 'Bryst', 32, 8],
+    ['Benkpress', 'Bryst', null, null],
+    ['Skråbenk hantel', 'Bryst', null, null],
     ['Flies', 'Bryst', null, null],
-    ['Markløft', 'Rygg', 160, 3],
-    ['Nedtrekk', 'Rygg', 70, 8],
-    ['Stang-rodning', 'Rygg', 80, 6],
-    ['Knebøy', 'Ben', 140, 5],
-    ['Beinpress', 'Ben', 200, 8],
-    ['Leg curl', 'Ben', 50, 10],
-    ['Skulderpress', 'Skuldre', 50, 6],
-    ['Lateral raises', 'Skuldre', 12, 12],
-    ['Bicepscurl', 'Armer', 18, 10],
-    ['Tricepspress', 'Armer', 30, 8],
+    ['Markløft', 'Rygg', null, null],
+    ['Nedtrekk', 'Rygg', null, null],
+    ['Stang-rodning', 'Rygg', null, null],
+    ['Knebøy', 'Ben', null, null],
+    ['Beinpress', 'Ben', null, null],
+    ['Leg curl', 'Ben', null, null],
+    ['Skulderpress', 'Skuldre', null, null],
+    ['Lateral raises', 'Skuldre', null, null],
+    ['Bicepscurl', 'Armer', null, null],
+    ['Tricepspress', 'Armer', null, null],
     ['Plank', 'Mage', null, null],
     ['Hengende kneløft', 'Mage', null, null],
   ];
   for (const [name, muscleGroup, prWeight, prReps] of library) {
     await addExercise({ name, muscleGroup, prWeight, prReps });
-  }
-
-  const day = 24 * 60 * 60 * 1000;
-  const now = Date.now();
-  const past = [
-    { name: 'Push', daysAgo: 1, exercises: [
-      { exerciseName: 'Benkpress', muscleGroup: 'Bryst', sets: [[80, 8], [80, 8], [80, 7]] },
-      { exerciseName: 'Skulderpress', muscleGroup: 'Skuldre', sets: [[45, 8], [45, 7]] },
-      { exerciseName: 'Tricepspress', muscleGroup: 'Armer', sets: [[25, 10], [25, 10]] },
-    ]},
-    { name: 'Pull', daysAgo: 3, exercises: [
-      { exerciseName: 'Markløft', muscleGroup: 'Rygg', sets: [[120, 5], [130, 5], [140, 3]] },
-      { exerciseName: 'Nedtrekk', muscleGroup: 'Rygg', sets: [[60, 10], [60, 8]] },
-      { exerciseName: 'Bicepscurl', muscleGroup: 'Armer', sets: [[16, 10], [16, 10]] },
-    ]},
-    { name: 'Ben', daysAgo: 5, exercises: [
-      { exerciseName: 'Knebøy', muscleGroup: 'Ben', sets: [[100, 8], [110, 6], [120, 5]] },
-      { exerciseName: 'Beinpress', muscleGroup: 'Ben', sets: [[180, 10], [180, 10]] },
-    ]},
-    { name: 'Push', daysAgo: 8, exercises: [
-      { exerciseName: 'Benkpress', muscleGroup: 'Bryst', sets: [[75, 8], [80, 6]] },
-      { exerciseName: 'Lateral raises', muscleGroup: 'Skuldre', sets: [[10, 12], [10, 12]] },
-    ]},
-  ];
-
-  for (const p of past) {
-    const start = now - p.daysAgo * day;
-    const end = start + 55 * 60 * 1000;
-    const w = await createWorkout({ name: p.name });
-    // Sett start/end manuelt for seed-data
-    const t = await tx(['workouts'], 'readwrite');
-    const stored = await reqToPromise(t.objectStore('workouts').get(w.id));
-    stored.startedAt = start;
-    stored.endedAt = end;
-    await reqToPromise(t.objectStore('workouts').put(stored));
-
-    for (let i = 0; i < p.exercises.length; i++) {
-      const ex = p.exercises[i];
-      const we = await addExerciseToWorkout(w.id, {
-        exerciseName: ex.exerciseName,
-        muscleGroup: ex.muscleGroup,
-        order: i,
-      });
-      for (let j = 0; j < ex.sets.length; j++) {
-        const [weight, reps] = ex.sets[j];
-        await addSet(we.id, { setNumber: j + 1, weight, reps, isCompleted: true });
-      }
-    }
   }
 }

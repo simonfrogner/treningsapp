@@ -59,7 +59,7 @@ function row(w) {
     <button class="list-row history-row" data-workout-id="${escapeHTML(w.id)}">
       <div class="history-row__body">
         <div class="t-card-title">${escapeHTML(w.name)}</div>
-        <div class="t-secondary tnum">${formatWeekday(w.startedAt)} · ${formatDuration(workoutDurationSec(w))} · ${Math.round(workoutTotalVolume(w))} kg</div>
+        <div class="t-secondary tnum">${formatDuration(workoutDurationSec(w))} · ${Math.round(workoutTotalVolume(w))} kg</div>
       </div>
       <span class="chevron"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>

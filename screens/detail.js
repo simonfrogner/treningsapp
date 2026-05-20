@@ -1,55 +1,140 @@
-import { getWorkout, workoutDurationSec, workoutTotalVolume } from '../db.js';
+import {
+  getWorkout, workoutDurationSec, workoutTotalVolume,
+  updateWorkout, deleteWorkout, deleteSet,
+} from '../db.js';
 import { formatWeekday, formatDuration, escapeHTML } from '../utils.js';
 
 export async function renderDetail({ workoutId, onClose }) {
-  const w = await getWorkout(workoutId);
+  let w = await getWorkout(workoutId);
   if (!w) return { html: '<p>Fant ikke trening</p>', bind: () => {} };
 
-  const html = `
-    <header class="overlay-header">
-      <button class="icon-btn" id="back-btn" aria-label="Tilbake">
-        <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
-      </button>
-      <div class="overlay-title">${escapeHTML(w.name)}</div>
-      <div style="width:40px;"></div>
-    </header>
+  function html() {
+    return `
+      <header class="overlay-header">
+        <button class="icon-btn" id="back-btn" aria-label="Tilbake">
+          <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="overlay-title">${escapeHTML(w.name)}</div>
+        <button class="icon-btn" id="edit-btn" aria-label="Rediger">
+          <svg viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4z"/></svg>
+        </button>
+      </header>
 
-    <div class="t-secondary" style="margin-top:8px;">${formatWeekday(w.startedAt)}</div>
-    <div class="t-secondary">${formatDuration(workoutDurationSec(w))}</div>
+      <div class="t-secondary" style="margin-top:8px;">${formatWeekday(w.startedAt)}</div>
+      <div class="t-secondary">${formatDuration(workoutDurationSec(w))}</div>
 
-    <div class="volume-line">
-      <span class="t-big-number">${Math.round(workoutTotalVolume(w))}</span>
-      <span class="t-secondary" style="font-size:15px;">kg totalt volum</span>
-    </div>
+      <div class="volume-line">
+        <span class="t-big-number">${Math.round(workoutTotalVolume(w))}</span>
+        <span class="t-secondary" style="font-size:15px;">kg totalt volum</span>
+      </div>
 
-    <div class="stack" style="margin-top:24px;">
-      ${w.exercises.map(exerciseCard).join('')}
-    </div>
-  `;
+      <div class="stack" style="margin-top:24px;">
+        ${w.exercises.map(exerciseCard).join('')}
+      </div>
+    `;
+  }
 
-  return {
-    html,
-    bind(rootEl) {
-      rootEl.querySelector('#back-btn').addEventListener('click', onClose);
+  function exerciseCard(ex) {
+    return `
+      <div class="card">
+        <div class="exercise-log__head">
+          <span class="t-card-title">${escapeHTML(ex.exerciseName)}</span>
+          <span class="muscle-tag">${escapeHTML(ex.muscleGroup)}</span>
+        </div>
+        <div class="detail-sets">
+          ${ex.sets.map(s => `
+            <div class="detail-set tnum" data-set-id="${escapeHTML(s.id)}">
+              <span class="detail-set__num">${s.setNumber}.</span>
+              <span class="detail-set__value">${s.weight} kg × ${s.reps} reps</span>
+              <button class="detail-set__delete" data-action="delete-set" aria-label="Slett sett">
+                <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  async function refresh(rootEl) {
+    w = await getWorkout(workoutId);
+    if (!w) { onClose(); return; }
+    rootEl.innerHTML = html();
+    bind(rootEl);
+  }
+
+  function bind(rootEl) {
+    rootEl.querySelector('#back-btn').addEventListener('click', onClose);
+    rootEl.querySelector('#edit-btn').addEventListener('click', async () => {
+      const action = await openEditWorkoutModal(w);
+      if (action === 'saved') {
+        await refresh(rootEl);
+      } else if (action === 'deleted') {
+        onClose();
+      }
+    });
+    for (const btn of rootEl.querySelectorAll('[data-action="delete-set"]')) {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('[data-set-id]');
+        if (!confirm('Slette dette settet?')) return;
+        await deleteSet(row.dataset.setId);
+        await refresh(rootEl);
+      });
     }
-  };
+  }
+
+  return { html: html(), bind };
 }
 
-function exerciseCard(ex) {
-  return `
-    <div class="card">
-      <div class="exercise-log__head">
-        <span class="t-card-title">${escapeHTML(ex.exerciseName)}</span>
-        <span class="muscle-tag">${escapeHTML(ex.muscleGroup)}</span>
+function openEditWorkoutModal(workout) {
+  return new Promise(resolve => {
+    const dateStr = new Date(workout.startedAt).toISOString().slice(0, 10);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'modal-backdrop';
+    wrap.innerHTML = `
+      <div class="modal">
+        <h2 class="modal__title">Rediger trening</h2>
+        <label class="field">
+          <span class="field__label">Navn</span>
+          <input class="field__input" id="w-name" type="text" value="${escapeHTML(workout.name)}" autocomplete="off">
+        </label>
+        <label class="field">
+          <span class="field__label">Dato</span>
+          <input class="field__input" id="w-date" type="date" value="${escapeHTML(dateStr)}">
+        </label>
+        <button class="modal__delete" data-action="delete">Slett trening</button>
+        <div class="modal__actions">
+          <button class="modal__btn modal__btn--ghost" data-action="cancel">Avbryt</button>
+          <button class="modal__btn modal__btn--primary" data-action="save">Lagre</button>
+        </div>
       </div>
-      <div class="detail-sets">
-        ${ex.sets.map(s => `
-          <div class="detail-set tnum">
-            <span class="detail-set__num">${s.setNumber}.</span>
-            <span>${s.weight} kg × ${s.reps} reps</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
+    `;
+    document.body.appendChild(wrap);
+
+    function close(result) { wrap.remove(); resolve(result); }
+
+    wrap.querySelector('[data-action="cancel"]').addEventListener('click', () => close(null));
+    wrap.addEventListener('click', e => { if (e.target === wrap) close(null); });
+    wrap.querySelector('[data-action="save"]').addEventListener('click', async () => {
+      const name = wrap.querySelector('#w-name').value.trim() || workout.name;
+      const dateStr = wrap.querySelector('#w-date').value;
+      const newStart = dateStr ? newStartFromDate(workout.startedAt, dateStr) : workout.startedAt;
+      await updateWorkout(workout.id, { name, startedAt: newStart });
+      close('saved');
+    });
+    wrap.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+      if (!confirm('Slette hele treningsøkten? Dette kan ikke angres.')) return;
+      await deleteWorkout(workout.id);
+      close('deleted');
+    });
+  });
+}
+
+function newStartFromDate(originalTs, dateStr) {
+  const original = new Date(originalTs);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const next = new Date(original);
+  next.setFullYear(y, m - 1, d);
+  return next.getTime();
 }

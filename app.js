@@ -41,7 +41,7 @@ async function render() {
         screen = await renderExercises();
         break;
       case 'profile':
-        screen = await renderProfile();
+        screen = await renderProfile({ onProfileChanged: render });
         break;
     }
   }
@@ -52,9 +52,15 @@ async function render() {
 }
 
 async function startWorkout() {
-  const w = await createWorkout({ name: 'Ny trening' });
+  const w = await createWorkout({ name: workoutNameForToday() });
   overlay = { kind: 'active', workoutId: w.id };
   render();
+}
+
+function workoutNameForToday() {
+  const MND = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'];
+  const d = new Date();
+  return `Trening ${d.getDate()}. ${MND[d.getMonth()]}`;
 }
 
 function openDetail(id) {
