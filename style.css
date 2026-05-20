@@ -526,6 +526,31 @@ input {
 .modal--tall {
   max-height: 80vh;
 }
+
+.guide-body {
+  overflow-y: auto;
+  max-height: 60vh;
+  padding-right: 4px;
+}
+.guide-body h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 20px 0 6px;
+  color: var(--text);
+}
+.guide-body h3:first-child {
+  margin-top: 0;
+}
+.guide-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-sec);
+}
+.guide-body strong {
+  color: var(--text);
+  font-weight: 600;
+}
 .modal__head {
   display: flex;
   align-items: center;

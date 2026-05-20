@@ -3,6 +3,12 @@
 Format basert på [Keep a Changelog](https://keepachangelog.com/).
 Versjonering følger [SemVer](https://semver.org/).
 
+## [1.2.0] – 2026-05-20
+
+### Lagt til
+- Brukerveiledning som modal i Profil-fanen.
+- "Del appen": bruker native del-meny på iPhone, kopierer lenke på desktop.
+
 ## [1.1.0] – 2026-05-20
 
 ### Lagt til

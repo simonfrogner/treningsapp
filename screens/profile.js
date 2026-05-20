@@ -59,6 +59,14 @@ export async function renderProfile({ onProfileChanged } = {}) {
 
     <section class="section">
       <div class="card card--flush">
+        <button class="list-row settings-row" data-action="guide">
+          <span class="settings-row__label">Brukerveiledning</span>
+          <span class="chevron"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+        </button>
+        <button class="list-row settings-row" data-action="share">
+          <span class="settings-row__label">Del appen</span>
+          <span class="chevron"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+        </button>
         <button class="list-row settings-row" data-action="export">
           <span class="settings-row__label">Eksporter data</span>
           <span class="chevron"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
@@ -85,6 +93,30 @@ export async function renderProfile({ onProfileChanged } = {}) {
       rootEl.querySelector('[data-action="edit-header"]').addEventListener('click', async () => {
         await openEditProfileModal(profile);
         onProfileChanged?.();
+      });
+
+      rootEl.querySelector('[data-action="guide"]').addEventListener('click', () => {
+        openGuideModal();
+      });
+
+      rootEl.querySelector('[data-action="share"]').addEventListener('click', async () => {
+        const shareData = {
+          title: 'Treningsapp',
+          text: 'Logg styrketrening enkelt og uten innlogging',
+          url: 'https://simonfrogner.github.io/treningsapp/',
+        };
+        if (navigator.share) {
+          try {
+            await navigator.share(shareData);
+          } catch (e) {
+            if (e.name !== 'AbortError') console.warn('Deling feilet:', e);
+          }
+        } else if (navigator.clipboard) {
+          await navigator.clipboard.writeText(shareData.url);
+          alert('Lenke kopiert til utklippstavlen.');
+        } else {
+          prompt('Kopier lenken:', shareData.url);
+        }
       });
 
       rootEl.querySelector('[data-action="export"]').addEventListener('click', async () => {
@@ -151,6 +183,54 @@ function initialsFor(name) {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function openGuideModal() {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-backdrop';
+  wrap.innerHTML = `
+    <div class="modal modal--tall">
+      <div class="modal__head">
+        <h2 class="modal__title" style="margin:0;">Brukerveiledning</h2>
+        <button class="modal__close" data-action="close" aria-label="Lukk">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+        </button>
+      </div>
+      <div class="guide-body">
+        <h3>Kom i gang</h3>
+        <p>Legg til navnet ditt ved å trykke på avataren øverst i Profil. Deretter er du klar til å starte din første økt.</p>
+
+        <h3>Start en trening</h3>
+        <p>Trykk <strong>Start trening</strong> på Hjem-skjermen. Timeren starter automatisk. Trykk <strong>Legg til øvelse</strong> og velg fra biblioteket.</p>
+
+        <h3>Logg sett</h3>
+        <p>Fyll inn vekt og reps for hvert sett, og trykk på sirkelen til høyre for å markere settet som fullført. Trykk <strong>Legg til sett</strong> for å legge til flere. X-en til venstre fjerner et sett.</p>
+
+        <h3>Fullfør eller forkast</h3>
+        <p>Trykk <strong>Fullfør trening</strong> når du er ferdig. Hvis du vil avbryte underveis, trykk tilbake-pilen og velg <strong>Forkast trening</strong>. Tomme sett ryddes automatisk.</p>
+
+        <h3>Notater</h3>
+        <p>Trykk <strong>Legg til notater</strong> for å skrive ned hvordan økten kjentes, form-observasjoner eller påminnelser. Notater kan også redigeres senere fra treningsdetaljene.</p>
+
+        <h3>Tilpass øvelsesbiblioteket</h3>
+        <p>I Øvelser-fanen kan du legge til, endre navn eller slette øvelser. Tidligere treninger beholder de gamle navnene selv om du endrer dem i biblioteket.</p>
+
+        <h3>Historikk og redigering</h3>
+        <p>Alle gjennomførte økter ligger i Historikk-fanen, gruppert per uke. Trykk på en økt for å se detaljer. Blyant-ikonet øverst lar deg endre navn, dato eller slette økten.</p>
+
+        <h3>Sikkerhetskopi</h3>
+        <p>Treningsdata lagres lokalt på enheten din. Bruk <strong>Eksporter data</strong> jevnlig for å lagre en backup som JSON-fil. <strong>Importer data</strong> gjenoppretter fra en tidligere eksport.</p>
+
+        <h3>Installer som app</h3>
+        <p>På iPhone: åpne appen i Safari, trykk del-knappen og velg <strong>Legg til på Hjem-skjerm</strong>. Da kjører appen som en vanlig app uten Safari-grensesnitt rundt.</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+
+  function close() { wrap.remove(); }
+  wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
+  wrap.querySelector('[data-action="close"]').addEventListener('click', close);
 }
 
 function openEditProfileModal(profile) {
