@@ -27,10 +27,21 @@ export async function renderDetail({ workoutId, onClose }) {
         ${w.exercises.map(exerciseCard).join('')}
       </div>
 
-      <button class="dashed-btn" id="notes-btn" style="margin-top:var(--card-gap);">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
-        <span>${w.notes ? 'Rediger notater' : 'Legg til notater'}</span>
-      </button>
+      ${w.notes
+        ? `<div class="notes-card" id="notes-card">
+            <div class="notes-card__head">
+              <span class="t-section-title">Notater</span>
+              <button class="notes-card__edit" id="notes-btn" aria-label="Rediger notater">
+                <svg viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16v4z"/></svg>
+              </button>
+            </div>
+            <p class="notes-card__text">${escapeHTML(w.notes)}</p>
+          </div>`
+        : `<button class="dashed-btn" id="notes-btn" style="margin-top:var(--card-gap);">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+            <span>Legg til notater</span>
+          </button>`
+      }
     `;
   }
 

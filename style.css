@@ -531,25 +531,63 @@ input {
   overflow-y: auto;
   max-height: 60vh;
   padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
 }
-.guide-body h3 {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 20px 0 6px;
-  color: var(--text);
+.guide-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-sec);
+  margin: 16px 0 8px;
+  padding-left: 2px;
 }
-.guide-body h3:first-child {
+.guide-section-title:first-child {
   margin-top: 0;
 }
-.guide-body p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text-sec);
+.guide-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.guide-body strong {
-  color: var(--text);
+.guide-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+.guide-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+.guide-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.guide-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.guide-text strong {
+  font-size: 14px;
   font-weight: 600;
+  color: var(--text);
+}
+.guide-text span {
+  font-size: 13px;
+  color: var(--text-sec);
+  line-height: 1.35;
 }
 .modal__head {
   display: flex;
@@ -788,6 +826,47 @@ body.has-overlay #tabbar {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.notes-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  margin-top: var(--card-gap);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.notes-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.notes-card__edit {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sec);
+  border-radius: 6px;
+}
+.notes-card__edit svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.notes-card__text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .notes-field {

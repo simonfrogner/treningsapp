@@ -31,17 +31,17 @@ export async function renderExercises() {
       `).join('')}
     </div>
 
+    <button class="dashed-btn" id="add-ex-btn" style="margin-top:20px;">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      <span>Legg til ny øvelse</span>
+    </button>
+
     <section class="section">
       ${filtered.length === 0
         ? `<div class="card"><p class="t-secondary" style="margin:0;">${all.length === 0 ? 'Ingen øvelser ennå' : 'Ingen treff'}</p></div>`
         : `<div class="card card--flush">${filtered.map(exerciseRow).join('')}</div>`
       }
     </section>
-
-    <button class="dashed-btn" id="add-ex-btn">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-      <span>Legg til ny øvelse</span>
-    </button>
   `;
 
   return {

@@ -3,6 +3,15 @@
 Format basert på [Keep a Changelog](https://keepachangelog.com/).
 Versjonering følger [SemVer](https://semver.org/).
 
+## [1.4.0] – 2026-05-20
+
+### Lagt til
+- Notater vises inline med en liten rediger-pen i treningsdetalj når de finnes.
+
+### Endret
+- Brukerveiledningen omgjort til seksjoner med ikoner og korte rader (samme stil som handleliste-appen).
+- "Legg til ny øvelse" flyttet til toppen av Øvelser-listen.
+
 ## [1.3.0] – 2026-05-20
 
 ### Lagt til

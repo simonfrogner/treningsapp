@@ -186,6 +186,76 @@ function initialsFor(name) {
 }
 
 function openGuideModal() {
+  const sections = [
+    {
+      title: 'Kom i gang',
+      items: [
+        { icon: 'user', strong: 'Legg til navn', text: 'Trykk på avataren øverst for å skrive inn navnet ditt' },
+        { icon: 'play', strong: 'Start trening', text: 'Trykk «Start trening» på Hjem for å begynne en ny økt' },
+      ],
+    },
+    {
+      title: 'Logg en økt',
+      items: [
+        { icon: 'plus', strong: 'Legg til øvelse', text: 'Velg fra biblioteket eller bruk søkefeltet' },
+        { icon: 'edit', strong: 'Fyll inn sett', text: 'Skriv vekt og reps, trykk sirkelen for å fullføre' },
+        { icon: 'plus', strong: 'Legg til flere sett', text: 'Trykk «Legg til sett» under hver øvelse' },
+        { icon: 'x', strong: 'Slett et sett', text: 'Trykk X-en til venstre for sett-raden' },
+        { icon: 'note', strong: 'Notater', text: 'Skriv ned hvordan økten kjentes — kan endres senere' },
+      ],
+    },
+    {
+      title: 'Avslutt',
+      items: [
+        { icon: 'check', strong: 'Fullfør', text: 'Tomme sett ryddes automatisk' },
+        { icon: 'back', strong: 'Forkast', text: 'Trykk tilbake-pilen og velg «Forkast trening»' },
+      ],
+    },
+    {
+      title: 'Øvelser og historikk',
+      items: [
+        { icon: 'edit', strong: 'Tilpass biblioteket', text: 'Legg til, endre eller slett øvelser i Øvelser-fanen' },
+        { icon: 'clock', strong: 'Se historikk', text: 'Alle gjennomførte økter ligger i Historikk gruppert per uke' },
+        { icon: 'edit', strong: 'Rediger økt', text: 'Trykk blyant-ikonet i en treningsdetalj for å endre navn eller dato' },
+      ],
+    },
+    {
+      title: 'Smart å vite',
+      items: [
+        { icon: 'download', strong: 'Backup', text: 'Eksporter data som JSON jevnlig — den lagres bare på din enhet' },
+        { icon: 'phone', strong: 'Installer på iPhone', text: 'I Safari: del-knappen → «Legg til på Hjem-skjerm»' },
+      ],
+    },
+  ];
+
+  const icons = {
+    user: '<circle cx="8" cy="6" r="3"/><path d="M3 14c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5"/>',
+    play: '<polygon points="5,3 13,8 5,13" fill="currentColor" stroke="none"/>',
+    plus: '<path d="M8 3v10M3 8h10"/>',
+    edit: '<path d="M11.5 2.5l2 2-9 9H2.5v-2z"/>',
+    x: '<path d="M4 4l8 8M12 4l-8 8"/>',
+    note: '<rect x="3" y="2" width="10" height="12" rx="1"/><path d="M5 5h6M5 8h6M5 11h4"/>',
+    check: '<polyline points="3.5,8.5 6.5,11.5 12.5,5.5"/>',
+    back: '<path d="M10 4l-4 4 4 4"/>',
+    clock: '<circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/>',
+    download: '<path d="M8 2v9M5 8l3 3 3-3M3 13h10"/>',
+    phone: '<rect x="5" y="2" width="6" height="12" rx="1"/><circle cx="8" cy="12" r="0.5" fill="currentColor"/>',
+  };
+
+  function row(item) {
+    return `
+      <div class="guide-row">
+        <div class="guide-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${icons[item.icon] || ''}</svg>
+        </div>
+        <div class="guide-text">
+          <strong>${item.strong}</strong>
+          <span>${item.text}</span>
+        </div>
+      </div>
+    `;
+  }
+
   const wrap = document.createElement('div');
   wrap.className = 'modal-backdrop';
   wrap.innerHTML = `
@@ -197,32 +267,12 @@ function openGuideModal() {
         </button>
       </div>
       <div class="guide-body">
-        <h3>Kom i gang</h3>
-        <p>Legg til navnet ditt ved å trykke på avataren øverst i Profil. Deretter er du klar til å starte din første økt.</p>
-
-        <h3>Start en trening</h3>
-        <p>Trykk <strong>Start trening</strong> på Hjem-skjermen. Timeren starter automatisk. Trykk <strong>Legg til øvelse</strong> og velg fra biblioteket.</p>
-
-        <h3>Logg sett</h3>
-        <p>Fyll inn vekt og reps for hvert sett, og trykk på sirkelen til høyre for å markere settet som fullført. Trykk <strong>Legg til sett</strong> for å legge til flere. X-en til venstre fjerner et sett.</p>
-
-        <h3>Fullfør eller forkast</h3>
-        <p>Trykk <strong>Fullfør trening</strong> når du er ferdig. Hvis du vil avbryte underveis, trykk tilbake-pilen og velg <strong>Forkast trening</strong>. Tomme sett ryddes automatisk.</p>
-
-        <h3>Notater</h3>
-        <p>Trykk <strong>Legg til notater</strong> for å skrive ned hvordan økten kjentes, form-observasjoner eller påminnelser. Notater kan også redigeres senere fra treningsdetaljene.</p>
-
-        <h3>Tilpass øvelsesbiblioteket</h3>
-        <p>I Øvelser-fanen kan du legge til, endre navn eller slette øvelser. Tidligere treninger beholder de gamle navnene selv om du endrer dem i biblioteket.</p>
-
-        <h3>Historikk og redigering</h3>
-        <p>Alle gjennomførte økter ligger i Historikk-fanen, gruppert per uke. Trykk på en økt for å se detaljer. Blyant-ikonet øverst lar deg endre navn, dato eller slette økten.</p>
-
-        <h3>Sikkerhetskopi</h3>
-        <p>Treningsdata lagres lokalt på enheten din. Bruk <strong>Eksporter data</strong> jevnlig for å lagre en backup som JSON-fil. <strong>Importer data</strong> gjenoppretter fra en tidligere eksport.</p>
-
-        <h3>Installer som app</h3>
-        <p>På iPhone: åpne appen i Safari, trykk del-knappen og velg <strong>Legg til på Hjem-skjerm</strong>. Da kjører appen som en vanlig app uten Safari-grensesnitt rundt.</p>
+        ${sections.map(sec => `
+          <div class="guide-section-title">${sec.title}</div>
+          <div class="guide-grid">
+            ${sec.items.map(row).join('')}
+          </div>
+        `).join('')}
       </div>
     </div>
   `;
