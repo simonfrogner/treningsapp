@@ -1,6 +1,6 @@
 # Treningsapp
 
-En minimalistisk iOS-app for å logge styrketrening. Bygget i SwiftUI med SwiftData for lokal lagring. Designet er inspirert av Apple Fitness og Linear — rent, typografi-drevet og rolig.
+En minimalistisk web-app (PWA) for å logge styrketrening. Bygget med ren HTML/CSS/JavaScript og IndexedDB for lokal lagring. Designet er inspirert av Apple Fitness og Linear — rent, typografi-drevet og rolig.
 
 ## Funksjoner
 
@@ -10,47 +10,61 @@ En minimalistisk iOS-app for å logge styrketrening. Bygget i SwiftUI med SwiftD
 - **Treningsdetalj** — fullstendig oversikt over én økt
 - **Øvelser** — søkbart bibliotek med filtrering per muskelgruppe
 - **Profil** — statistikk (treninger denne måneden, total volum, streak)
+- **PWA** — fungerer offline og kan installeres på hjemskjerm
 
 ## Teknologi
 
-- **SwiftUI** for UI
-- **SwiftData** for lokal persistering
-- **Minimum iOS:** 17
-- **Xcode:** 26+
+- **HTML/CSS/JS** uten rammeverk eller byggesteg
+- **IndexedDB** for lokal datalagring (data ligger i nettleseren)
+- **Service Worker** for offline-støtte
+- **GitHub Pages** for hosting
 
 ## Komme i gang
 
-1. Klon repoet
-2. Åpne `Treningsapp/Treningsapp.xcodeproj` i Xcode
-3. Velg en iPhone-simulator
-4. Trykk **⌘R** for å bygge og kjøre
+### Lokal utvikling
 
-Ved første kjøring fylles appen med et eksempelbibliotek (15 øvelser) og noen tidligere treninger, slik at skjermene har innhold å vise.
+```bash
+python3 -m http.server 8000 --bind 0.0.0.0
+```
+
+Åpne `http://localhost:8000` i en nettleser. På iPhone på samme WiFi: bytt ut `localhost` med Macens IP-adresse.
+
+### Installer som app
+
+På iPhone: åpne i Safari → del-knappen → **Legg til på Hjem-skjerm**.
+Da fungerer den som en vanlig app uten Safari-UI rundt.
 
 ## Prosjektstruktur
 
 ```
-Treningsapp/Treningsapp/
-├── TreningsappApp.swift      # App entry point, ModelContainer
-├── RootView.swift            # Tab-navigasjon
-├── Theme.swift               # Farger, typografi, spacing
-├── Components.swift          # MuscleTag, Card, SectionHeader, Chevron
-├── Models.swift              # SwiftData-modeller
-├── SampleData.swift          # Seed for første kjøring
-├── HomeView.swift            # Hjem
-├── HistoryView.swift         # Historikk
-├── ExercisesView.swift       # Øvelser
-├── ProfileView.swift         # Profil
-├── ActiveWorkoutView.swift   # Aktiv trening
-└── SessionDetailView.swift   # Treningsdetalj
+.
+├── index.html        # Skjelett, tab-bar
+├── style.css         # Design tokens + komponentstiler
+├── app.js            # Ruting mellom skjermer
+├── db.js             # Datalag (IndexedDB) — isolert API
+├── utils.js          # Felleshjelpere
+├── sw.js             # Service worker (offline)
+├── manifest.json     # PWA-manifest
+├── icons/            # App-ikoner
+└── screens/
+    ├── home.js
+    ├── history.js
+    ├── exercises.js
+    ├── profile.js
+    ├── active.js     # Aktiv trening
+    └── detail.js     # Treningsdetalj
 ```
 
 ## Datamodell
 
-- **Exercise** — øvelse i biblioteket (navn, muskelgruppe, PR)
-- **Workout** — én treningsøkt (start, slutt, øvelser)
-- **WorkoutExercise** — øvelse innenfor en økt
-- **WorkoutSet** — ett enkelt sett (vekt, reps, fullført)
+Lagres lokalt i nettleserens IndexedDB:
+
+- **exercises** — øvelse i biblioteket (navn, muskelgruppe, PR)
+- **workouts** — én treningsøkt (start, slutt)
+- **workout_exercises** — øvelser i en økt
+- **workout_sets** — enkeltsett (vekt, reps, fullført)
+
+Data ligger på brukerens enhet og synkroniseres ikke mellom enheter.
 
 ## Design
 
