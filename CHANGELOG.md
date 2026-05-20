@@ -3,6 +3,12 @@
 Format basert på [Keep a Changelog](https://keepachangelog.com/).
 Versjonering følger [SemVer](https://semver.org/).
 
+## [1.3.0] – 2026-05-20
+
+### Lagt til
+- Banner som varsler om ny versjon og lar deg oppdatere med ett trykk.
+- Automatisk sjekk etter oppdateringer hver gang appen får fokus.
+
 ## [1.2.0] – 2026-05-20
 
 ### Lagt til
