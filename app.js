@@ -1,4 +1,5 @@
 import { seedIfEmpty, createWorkout, listWorkouts, deleteWorkout, getProfile, saveProfile } from './db.js';
+import { APP_VERSION } from './version.js';
 import { renderHome } from './screens/home.js';
 import { renderHistory } from './screens/history.js';
 import { renderExercises, openEditExerciseModal } from './screens/exercises.js';
@@ -117,7 +118,7 @@ tabbar.addEventListener('click', (e) => {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
       try {
-        const reg = await navigator.serviceWorker.register('./sw.js');
+        const reg = await navigator.serviceWorker.register(`./sw.js?v=${APP_VERSION}`);
 
         reg.addEventListener('updatefound', () => {
           const installing = reg.installing;

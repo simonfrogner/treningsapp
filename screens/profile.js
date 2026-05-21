@@ -5,6 +5,7 @@ import {
 } from '../db.js';
 import { startOfMonth, startOfWeek, startOfDay, escapeHTML } from '../utils.js';
 import { APP_VERSION } from '../version.js';
+import { CHANGELOG } from '../changelog.js';
 
 export async function renderProfile({ onProfileChanged } = {}) {
   const profile = await getProfile();
@@ -67,6 +68,10 @@ export async function renderProfile({ onProfileChanged } = {}) {
           <span class="settings-row__label">Del appen</span>
           <span class="chevron"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
         </button>
+        <button class="list-row settings-row" data-action="check-update">
+          <span class="settings-row__label">Sjekk for oppdateringer</span>
+          <span class="chevron"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+        </button>
         <button class="list-row settings-row" data-action="export">
           <span class="settings-row__label">Eksporter data</span>
           <span class="chevron"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
@@ -84,7 +89,7 @@ export async function renderProfile({ onProfileChanged } = {}) {
 
     <input type="file" id="import-input" accept="application/json" style="display:none;">
 
-    <p class="version-line">v${APP_VERSION}</p>
+    <button class="version-line" id="version-btn">v${APP_VERSION}</button>
   `;
 
   return {
@@ -97,6 +102,39 @@ export async function renderProfile({ onProfileChanged } = {}) {
 
       rootEl.querySelector('[data-action="guide"]').addEventListener('click', () => {
         openGuideModal();
+      });
+
+      rootEl.querySelector('#version-btn').addEventListener('click', () => {
+        openChangelogModal();
+      });
+
+      rootEl.querySelector('[data-action="check-update"]').addEventListener('click', async () => {
+        if (!('serviceWorker' in navigator)) {
+          alert('Nettleseren støtter ikke automatiske oppdateringer.');
+          return;
+        }
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (!reg) {
+            alert('Fant ingen registrert service worker. Last siden på nytt.');
+            return;
+          }
+          await reg.update();
+          // Hvis det finnes en waiting SW, aktiver den direkte
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            return;
+          }
+          // Vent litt for å se om en ny SW ble funnet
+          await new Promise(r => setTimeout(r, 1500));
+          if (reg.installing || reg.waiting) {
+            alert('Ny versjon laster ned — appen oppdateres straks.');
+          } else {
+            alert('Du har siste versjon.');
+          }
+        } catch (e) {
+          alert('Klarte ikke å sjekke: ' + e.message);
+        }
       });
 
       rootEl.querySelector('[data-action="share"]').addEventListener('click', async () => {
@@ -183,6 +221,44 @@ function initialsFor(name) {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function openChangelogModal() {
+  const entries = CHANGELOG.slice(0, 3);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-backdrop';
+  wrap.innerHTML = `
+    <div class="modal modal--tall">
+      <div class="modal__head">
+        <h2 class="modal__title" style="margin:0;">Hva er nytt</h2>
+        <button class="modal__close" data-action="close" aria-label="Lukk">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+        </button>
+      </div>
+      <div class="guide-body">
+        ${entries.map(entry => `
+          <div class="changelog-entry">
+            <div class="changelog-head">
+              <span class="changelog-version">v${escapeHTML(entry.version)}</span>
+              <span class="t-small">${escapeHTML(entry.date)}</span>
+            </div>
+            ${entry.sections.map(sec => `
+              <div class="changelog-section-title">${escapeHTML(sec.title)}</div>
+              <ul class="changelog-list">
+                ${sec.items.map(item => `<li>${escapeHTML(item)}</li>`).join('')}
+              </ul>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+
+  function close() { wrap.remove(); }
+  wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
+  wrap.querySelector('[data-action="close"]').addEventListener('click', close);
 }
 
 function openGuideModal() {

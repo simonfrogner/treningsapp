@@ -3,6 +3,16 @@
 Format basert på [Keep a Changelog](https://keepachangelog.com/).
 Versjonering følger [SemVer](https://semver.org/).
 
+## [1.7.0] – 2026-05-20
+
+### Lagt til
+- Trykk på versjonsnummeret i Profil for å se endringslogg (de 3 siste versjonene).
+- "Sjekk for oppdateringer"-rad i Profil for å tvinge en oppdateringssjekk.
+
+### Endret
+- Service worker aktiveres umiddelbart ved install (uten å vente på brukerinteraksjon).
+- Service worker-registrering bruker cache-busting (`?v=…`) så nye versjoner alltid plukkes opp.
+
 ## [1.6.0] – 2026-05-20
 
 ### Lagt til

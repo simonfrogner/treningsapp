@@ -438,10 +438,53 @@ input {
 }
 
 .version-line {
-  margin: 32px 0 0;
-  text-align: center;
+  margin: 32px auto 0;
+  display: block;
+  background: transparent;
+  border: none;
   font-size: 12px;
   color: var(--text-ter);
+  font-family: inherit;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.changelog-entry {
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.changelog-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.changelog-version {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.changelog-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-sec);
+  margin: 10px 0 4px;
+}
+.changelog-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.changelog-list li {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
 }
 
 .settings-row {
