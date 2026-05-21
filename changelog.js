@@ -4,6 +4,16 @@
 
 export const CHANGELOG = [
   {
+    version: '1.7.1',
+    date: '2026-05-20',
+    sections: [
+      {
+        title: 'Fikset',
+        items: ['Innhold scroller ikke lenger bak status-bar på iPhone'],
+      },
+    ],
+  },
+  {
     version: '1.7.0',
     date: '2026-05-20',
     sections: [
@@ -42,20 +52,6 @@ export const CHANGELOG = [
           'Tydeligere input-felter for vekt og reps',
           'Tall markeres automatisk ved fokus',
         ],
-      },
-    ],
-  },
-  {
-    version: '1.5.0',
-    date: '2026-05-20',
-    sections: [
-      {
-        title: 'Lagt til',
-        items: ['Velkomstmodal som krever navn ved første oppstart'],
-      },
-      {
-        title: 'Endret',
-        items: ['Brukerveiledning uten ikoner'],
       },
     ],
   },

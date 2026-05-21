@@ -3,6 +3,11 @@
 Format basert på [Keep a Changelog](https://keepachangelog.com/).
 Versjonering følger [SemVer](https://semver.org/).
 
+## [1.7.1] – 2026-05-20
+
+### Fikset
+- Innhold scroller ikke lenger bak status-bar (klokke, dynamic island) på iPhone.
+
 ## [1.7.0] – 2026-05-20
 
 ### Lagt til

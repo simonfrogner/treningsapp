@@ -74,6 +74,18 @@ input {
   flex-direction: column;
 }
 
+#app::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background: var(--bg);
+  z-index: 50;
+  pointer-events: none;
+}
+
 #screen-root {
   flex: 1;
   padding: max(env(safe-area-inset-top), 8px) var(--screen-h) 24px;
