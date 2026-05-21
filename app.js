@@ -1,7 +1,8 @@
 import { seedIfEmpty, createWorkout, listWorkouts, deleteWorkout, getProfile, saveProfile } from './db.js';
 import { renderHome } from './screens/home.js';
 import { renderHistory } from './screens/history.js';
-import { renderExercises } from './screens/exercises.js';
+import { renderExercises, openEditExerciseModal } from './screens/exercises.js';
+import { renderExerciseDetail } from './screens/exercise-detail.js';
 import { renderProfile } from './screens/profile.js';
 import { renderActive } from './screens/active.js';
 import { renderDetail } from './screens/detail.js';
@@ -22,8 +23,22 @@ async function render() {
     document.body.classList.add('has-overlay');
     if (overlay.kind === 'active') {
       screen = await renderActive({ workoutId: overlay.workoutId, onClose: closeOverlay });
-    } else {
+    } else if (overlay.kind === 'detail') {
       screen = await renderDetail({ workoutId: overlay.workoutId, onClose: closeOverlay });
+    } else if (overlay.kind === 'exercise-detail') {
+      screen = await renderExerciseDetail({
+        exercise: overlay.exercise,
+        onClose: closeOverlay,
+        onEdit: async (ex) => {
+          const changed = await openEditExerciseModal(ex);
+          if (changed) {
+            // Hvis øvelsen ble slettet, lukk overlay
+            closeOverlay();
+          } else {
+            render();
+          }
+        },
+      });
     }
   } else {
     document.body.classList.remove('has-overlay');
@@ -39,7 +54,7 @@ async function render() {
         screen = await renderHistory({ onOpenWorkout: openDetail });
         break;
       case 'exercises':
-        screen = await renderExercises();
+        screen = await renderExercises({ onOpenExercise: openExerciseDetail });
         break;
       case 'profile':
         screen = await renderProfile({ onProfileChanged: render });
@@ -70,6 +85,11 @@ function workoutNameForToday() {
 
 function openDetail(id) {
   overlay = { kind: 'detail', workoutId: id };
+  render();
+}
+
+function openExerciseDetail(exercise) {
+  overlay = { kind: 'exercise-detail', exercise };
   render();
 }
 

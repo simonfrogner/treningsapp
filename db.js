@@ -299,6 +299,56 @@ export async function clearAll() {
 
 // === Beregninger (kan kjøres på data uten DB) ===
 
+// Bygg en map: øvelsesnavn -> { setId } for det settet med høyest vekt × reps.
+// Bruker tidligst-vunnet-vekt prinsipp: ved likhet vinner det eldste settet
+// (siden senere likt sett ikke ville være "ny PR").
+export async function buildPRMap() {
+  const t = await tx(['workouts', 'workout_exercises', 'workout_sets']);
+  const workouts = await reqToPromise(t.objectStore('workouts').getAll());
+  const exercises = await reqToPromise(t.objectStore('workout_exercises').getAll());
+  const sets = await reqToPromise(t.objectStore('workout_sets').getAll());
+
+  const workoutById = new Map(workouts.map(w => [w.id, w]));
+  const exById = new Map(exercises.map(e => [e.id, e]));
+
+  // For hvert sett, finn øvelsens navn og workoutens startedAt
+  const candidates = sets
+    .filter(s => s.isCompleted && s.weight > 0 && s.reps > 0)
+    .map(s => {
+      const ex = exById.get(s.workoutExerciseId);
+      if (!ex) return null;
+      const w = workoutById.get(ex.workoutId);
+      if (!w || w.endedAt == null) return null;
+      return {
+        setId: s.id,
+        name: ex.exerciseName,
+        weight: s.weight,
+        reps: s.reps,
+        startedAt: w.startedAt,
+      };
+    })
+    .filter(Boolean);
+
+  // Grupper per navn, finn beste verdi (høyeste vekt × reps)
+  const bestByName = new Map();
+  for (const c of candidates) {
+    const cur = bestByName.get(c.name);
+    if (!cur || c.weight > cur.weight || (c.weight === cur.weight && c.reps > cur.reps)) {
+      bestByName.set(c.name, { weight: c.weight, reps: c.reps });
+    }
+  }
+
+  // Marker alle sett som matcher beste verdi for sin øvelse
+  const map = new Map();
+  for (const c of candidates) {
+    const best = bestByName.get(c.name);
+    if (c.weight === best.weight && c.reps === best.reps) {
+      map.set(c.setId, true);
+    }
+  }
+  return map;
+}
+
 export function workoutDurationSec(w) {
   const end = w.endedAt ?? Date.now();
   return Math.max(0, Math.floor((end - w.startedAt) / 1000));

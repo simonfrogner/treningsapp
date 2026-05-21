@@ -1,12 +1,14 @@
 import {
   getWorkout, workoutDurationSec,
   updateWorkout, updateWorkoutNotes, deleteWorkout, deleteSet,
+  buildPRMap,
 } from '../db.js';
 import { formatWeekday, formatDuration, escapeHTML } from '../utils.js';
 
 export async function renderDetail({ workoutId, onClose }) {
   let w = await getWorkout(workoutId);
   if (!w) return { html: '<p>Fant ikke trening</p>', bind: () => {} };
+  let prMap = await buildPRMap();
 
   function html() {
     return `
@@ -57,6 +59,7 @@ export async function renderDetail({ workoutId, onClose }) {
             <div class="detail-set tnum" data-set-id="${escapeHTML(s.id)}">
               <span class="detail-set__num">${s.setNumber}.</span>
               <span class="detail-set__value">${s.weight} kg × ${s.reps} reps</span>
+              ${prMap.has(s.id) ? '<span class="pr-badge">PR</span>' : ''}
               <button class="detail-set__delete" data-action="delete-set" aria-label="Slett sett">
                 <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12"/></svg>
               </button>
@@ -70,6 +73,7 @@ export async function renderDetail({ workoutId, onClose }) {
   async function refresh(rootEl) {
     w = await getWorkout(workoutId);
     if (!w) { onClose(); return; }
+    prMap = await buildPRMap();
     rootEl.innerHTML = html();
     bind(rootEl);
   }

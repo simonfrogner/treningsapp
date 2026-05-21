@@ -127,6 +127,9 @@ export async function renderActive({ workoutId, onClose }) {
           const value = parseFloat(input.value) || 0;
           await updateSet(setId, { [field]: value });
         };
+        input.onfocus = () => {
+          requestAnimationFrame(() => input.select());
+        };
       }
       const check = row.querySelector('[data-action="toggle"]');
       check.onclick = async () => {

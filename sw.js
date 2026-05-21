@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12';
 const CACHE_NAME = `treningsapp-${CACHE_VERSION}`;
 
 const ASSETS = [
@@ -15,6 +15,7 @@ const ASSETS = [
   './screens/profile.js',
   './screens/active.js',
   './screens/detail.js',
+  './screens/exercise-detail.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

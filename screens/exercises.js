@@ -6,7 +6,7 @@ import { escapeHTML } from '../utils.js';
 
 let state = { search: '', filter: null };
 
-export async function renderExercises() {
+export async function renderExercises({ onOpenExercise } = {}) {
   const all = await listExercises();
   all.sort((a, b) => a.name.localeCompare(b.name, 'nb'));
 
@@ -60,10 +60,7 @@ export async function renderExercises() {
       }
       for (const row of rootEl.querySelectorAll('.exercise-row[data-ex-id]')) {
         const ex = all.find(e => e.id === row.dataset.exId);
-        row.addEventListener('click', async () => {
-          const changed = await openEditExerciseModal(ex);
-          if (changed) await rerender(rootEl);
-        });
+        row.addEventListener('click', () => onOpenExercise?.(ex));
       }
       rootEl.querySelector('#add-ex-btn').addEventListener('click', async () => {
         const created = await openAddExerciseModal();
@@ -127,7 +124,7 @@ function openAddExerciseModal() {
   });
 }
 
-function openEditExerciseModal(ex) {
+export function openEditExerciseModal(ex) {
   return new Promise(resolve => {
     const wrap = buildModal({
       title: 'Rediger øvelse',

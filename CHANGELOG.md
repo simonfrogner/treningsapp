@@ -3,6 +3,20 @@
 Format basert på [Keep a Changelog](https://keepachangelog.com/).
 Versjonering følger [SemVer](https://semver.org/).
 
+## [1.6.0] – 2026-05-20
+
+### Lagt til
+- Detalj-skjerm for hver øvelse (trykk en øvelse i Øvelser-fanen).
+- Statistikk per øvelse: beste sett, antall ganger gjort, sist gjort.
+- Linjegraf over maks-vekt per økt med smooth-kurve, område-fyll og PR-markering.
+- Tap på et grafpunkt viser dato og vekt i en tooltip.
+- "PR"-badge i historikk og øvelses-detalj for sett som matcher rekorden.
+- Pille-bakgrunn rundt aktiv fane i tab-baren.
+
+### Endret
+- Inputene for vekt og reps har nå lett bakgrunn for å vise at de er klikkbare.
+- Tall i input markeres automatisk ved fokus, så det er lett å endre.
+
 ## [1.5.0] – 2026-05-20
 
 ### Lagt til
